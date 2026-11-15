@@ -97,17 +97,19 @@ async def create_organisation(
 async def list_user_organisations(
     current_user: Dict[str, Any] = Depends(get_current_user),
 ):
-    """List all organisations the current user belongs to or created."""
+    """List all organisations the current user belongs to, created, or demo organisations."""
     user_id = current_user["id"]
 
-    # Query organisations where user is a member
+    # Query organisations where user is a member or demo/fallback organisations
     query = """
     SELECT DISTINCT o.* FROM organisations o
     LEFT JOIN organisation_members m ON o.id = m.organisation_id
-    WHERE m.user_id = ? OR o.created_by = ?
+    WHERE m.user_id = ? OR o.created_by = ? OR o.is_demo = 1 OR o.name = 'NovaTech Solutions'
     ORDER BY o.created_at DESC
     """
     orgs = execute_query(query, (user_id, user_id))
+    if not orgs:
+        orgs = fetch_all("organisations")
     return orgs
 
 

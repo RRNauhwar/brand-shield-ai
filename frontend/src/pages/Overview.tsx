@@ -58,19 +58,22 @@ export const Overview: React.FC = () => {
 
   useEffect(() => {
     const loadDashboardData = async () => {
-      if (!currentOrg) return;
+      if (!currentOrg) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
         const [stats, subs, rls, camps] = await Promise.all([
-          analyticsService.getOverview(currentOrg.id),
-          contentService.listSubmissions(currentOrg.id),
-          brandService.getRules(currentOrg.id),
+          analyticsService.getOverview(currentOrg.id).catch(() => null),
+          contentService.listSubmissions(currentOrg.id).catch(() => []),
+          brandService.getRules(currentOrg.id).catch(() => []),
           campaignService.listCampaigns(currentOrg.id).catch(() => []),
         ]);
-        setAnalytics(stats);
-        setSubmissions(subs);
-        setRules(rls);
-        setCampaigns(camps);
+        if (stats) setAnalytics(stats);
+        if (subs) setSubmissions(subs);
+        if (rls) setRules(rls);
+        if (camps) setCampaigns(camps);
       } catch (err) {
         console.error('Error loading overview data', err);
       } finally {

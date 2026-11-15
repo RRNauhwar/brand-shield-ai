@@ -51,21 +51,24 @@ export const ReviewApprovals: React.FC = () => {
   const [isSubmittingAction, setIsSubmittingAction] = useState(false);
 
   const fetchData = async () => {
-    if (!currentOrg) return;
+    if (!currentOrg) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const [subs, reps] = await Promise.all([
-        contentService.listSubmissions(currentOrg.id),
-        auditService.getAuditHistory(currentOrg.id)
+        contentService.listSubmissions(currentOrg.id).catch(() => []),
+        auditService.getAuditHistory(currentOrg.id).catch(() => [])
       ]);
-      setSubmissions(subs);
+      setSubmissions(subs || []);
       const repMap: Record<string, AuditReport> = {};
-      reps.forEach(r => {
+      (reps || []).forEach(r => {
         repMap[r.content_id] = r;
       });
       setReports(repMap);
 
-      if (subs.length > 0 && !selectedSubmission) {
+      if ((subs || []).length > 0 && !selectedSubmission) {
         const defaultSub = subs.find(s => s.status === 'under_review') || subs[0];
         loadSubmissionDetails(defaultSub);
       }

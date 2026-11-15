@@ -78,15 +78,18 @@ export const CampaignWarRoom: React.FC = () => {
   ]);
 
   const loadData = async () => {
-    if (!currentOrg) return;
+    if (!currentOrg) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
-      const list = await campaignService.listCampaigns(currentOrg.id);
-      setCampaigns(list);
+      const list = await campaignService.listCampaigns(currentOrg.id).catch(() => []);
+      setCampaigns(list || []);
       if (id) {
-        const found = list.find(c => c.id === id) || (await campaignService.getCampaign(currentOrg.id, id));
-        setSelectedCampaign(found);
-      } else if (list.length > 0 && !selectedCampaign) {
+        const found = (list || []).find(c => c.id === id) || (await campaignService.getCampaign(currentOrg.id, id).catch(() => null));
+        if (found) setSelectedCampaign(found);
+      } else if ((list || []).length > 0 && !selectedCampaign) {
         setSelectedCampaign(list[0]);
       }
     } catch (err) {

@@ -69,12 +69,21 @@ export const authService = {
   },
 
   async demoLogin(): Promise<AuthResponse> {
-    const user = mockStorage.getCurrentUser();
-    const token = `token_${Date.now()}`;
+    const token = 'demo-token-novatech';
     localStorage.setItem('access_token', token);
+    try {
+      await api.post('/demo/setup');
+      const orgsRes = await api.get('/organisations');
+      if (orgsRes.data && orgsRes.data.length > 0) {
+        mockStorage.setCurrentOrg(orgsRes.data[0]);
+      }
+    } catch (e) {
+      // Ignore if offline
+    }
+    const user = mockStorage.getCurrentUser() || DEFAULT_USER;
     return {
-      user: user || DEFAULT_USER,
-      access_token: token
+      user,
+      access_token: token,
     };
   },
 

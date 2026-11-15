@@ -52,16 +52,21 @@ export const AiRepairStudio: React.FC = () => {
   const [isEditingManually, setIsEditingManually] = useState(false);
 
   const loadSubmissions = async () => {
-    if (!currentOrg) return;
+    if (!currentOrg) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
-      const list = await contentService.listSubmissions(currentOrg.id);
-      setSubmissions(list);
+      const list = await contentService.listSubmissions(currentOrg.id).catch(() => []);
+      setSubmissions(list || []);
       if (id) {
-        const found = list.find(s => s.id === id) || (await contentService.getSubmission(currentOrg.id, id));
-        setSelectedSubmission(found);
-        await loadAuditForSubmission(found.id);
-      } else if (list.length > 0) {
+        const found = (list || []).find(s => s.id === id) || (await contentService.getSubmission(currentOrg.id, id).catch(() => null));
+        if (found) {
+          setSelectedSubmission(found);
+          await loadAuditForSubmission(found.id);
+        }
+      } else if ((list || []).length > 0) {
         setSelectedSubmission(list[0]);
         await loadAuditForSubmission(list[0].id);
       }

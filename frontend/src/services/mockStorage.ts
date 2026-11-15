@@ -16,17 +16,17 @@ import {
 } from '../types';
 
 export const DEFAULT_USER: User = {
-  id: 'usr_admin',
-  email: 'admin@brandshield.ai',
-  full_name: 'Brand Administrator',
-  avatar_url: 'https://api.dicebear.com/7.x/initials/svg?seed=BrandAdmin'
+  id: '00000000-0000-0000-0000-000000000002',
+  email: 'admin@novatech.ai',
+  full_name: 'NovaTech Administrator',
+  avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=100&auto=format&fit=crop&q=80'
 };
 
 export const DEFAULT_ORGANISATION: Organisation = {
-  id: 'org_main',
-  name: 'My Brand Workspace',
-  description: 'Corporate brand governance workspace',
-  is_demo: false,
+  id: '00000000-0000-0000-0000-000000000001',
+  name: 'NovaTech Solutions',
+  description: 'Enterprise Cloud Architecture and Autonomous Cybersecurity Platform',
+  is_demo: true,
   created_at: new Date().toISOString()
 };
 

@@ -39,11 +39,14 @@ export const GovernanceAnalytics: React.FC = () => {
 
   useEffect(() => {
     const fetchAnalytics = async () => {
-      if (!currentOrg) return;
+      if (!currentOrg) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
         const data = await analyticsService.getOverview(currentOrg.id);
-        setAnalytics(data);
+        if (data) setAnalytics(data);
       } catch (err) {
         console.error('Error fetching analytics', err);
       } finally {

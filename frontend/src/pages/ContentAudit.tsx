@@ -45,7 +45,10 @@ export const ContentAudit: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!currentOrg) return;
+    if (!currentOrg) {
+      toast.error('Organisation context not ready. Please select an organisation.');
+      return;
+    }
 
     if (inputMode === 'text' && !content.trim()) {
       toast.error('Please enter content to analyze');

@@ -38,12 +38,15 @@ export const AuditHistory: React.FC = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      if (!currentOrg) return;
+      if (!currentOrg) {
+        setLoading(false);
+        return;
+      }
       setLoading(true);
       try {
         const [subs, reps] = await Promise.all([
-          contentService.listSubmissions(currentOrg.id),
-          auditService.getAuditHistory(currentOrg.id)
+          contentService.listSubmissions(currentOrg.id).catch(() => []),
+          auditService.getAuditHistory(currentOrg.id).catch(() => [])
         ]);
         setSubmissions(subs);
         const map: Record<string, AuditReport> = {};

@@ -36,8 +36,11 @@ export const OrganisationProvider: React.FC<{ children: ReactNode }> = ({ childr
       
       // Select stored or default
       const stored = mockStorage.getCurrentOrg();
-      const matched = orgs.find(o => o.id === stored?.id) || orgs[0] || null;
+      const matched = orgs.find(o => o.id === stored?.id) || orgs[0] || stored || null;
       setCurrentOrg(matched);
+      if (matched) {
+        mockStorage.setCurrentOrg(matched);
+      }
 
       if (matched) {
         const mems = await organisationService.getMembers(matched.id);

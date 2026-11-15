@@ -65,17 +65,20 @@ export const BrandKnowledge: React.FC = () => {
   const canEdit = userRole === 'admin' || userRole === 'creator';
 
   const fetchData = async () => {
-    if (!currentOrg) return;
+    if (!currentOrg) {
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     try {
       const [docs, rls, asts] = await Promise.all([
-        brandService.getDocuments(currentOrg.id),
-        brandService.getRules(currentOrg.id),
-        brandService.getAssets(currentOrg.id)
+        brandService.getDocuments(currentOrg.id).catch(() => []),
+        brandService.getRules(currentOrg.id).catch(() => []),
+        brandService.getAssets(currentOrg.id).catch(() => [])
       ]);
-      setDocuments(docs);
-      setRules(rls);
-      setAssets(asts);
+      setDocuments(docs || []);
+      setRules(rls || []);
+      setAssets(asts || []);
     } catch (err) {
       console.error('Error fetching brand data', err);
     } finally {
