@@ -3,7 +3,7 @@
 import hashlib
 import math
 import re
-from typing import List, Optional
+from typing import List, Optional, Dict
 import numpy as np
 import structlog
 from openai import AsyncOpenAI
@@ -16,6 +16,9 @@ logger = structlog.get_logger(__name__)
 EMBEDDING_DIM = 1536
 OPENAI_MODEL_NAME = "text-embedding-3-small"
 GEMINI_EMBEDDING_MODEL = "models/gemini-embedding-001"
+
+# Fast in-memory embedding cache to avoid redundant external network round trips
+_embedding_cache: Dict[str, List[float]] = {}
 
 
 def _generate_fallback_embedding(text: str, dim: int = EMBEDDING_DIM) -> List[float]:
@@ -68,6 +71,10 @@ async def generate_embedding(text: str) -> List[float]:
     if not cleaned_text:
         return _generate_fallback_embedding("")
 
+    cache_key = hashlib.sha256(cleaned_text.encode("utf-8")).hexdigest()
+    if cache_key in _embedding_cache:
+        return _embedding_cache[cache_key]
+
     # 1. Primary: Google Gemini Embeddings
     if settings.GEMINI_API_KEY:
         try:
@@ -79,6 +86,7 @@ async def generate_embedding(text: str) -> List[float]:
             )
             emb = res.get("embedding")
             if emb and len(emb) == EMBEDDING_DIM:
+                _embedding_cache[cache_key] = emb
                 return emb
         except Exception as e:
             logger.warning("Gemini embedding generation failed, falling back", error=str(e))
@@ -91,12 +99,16 @@ async def generate_embedding(text: str) -> List[float]:
                 input=[cleaned_text],
                 model=OPENAI_MODEL_NAME,
             )
-            return response.data[0].embedding
+            emb = response.data[0].embedding
+            _embedding_cache[cache_key] = emb
+            return emb
         except Exception as e:
             logger.warning("OpenAI embedding generation failed, using fallback", error=str(e))
 
     # 3. Deterministic Local Fallback
-    return _generate_fallback_embedding(cleaned_text)
+    fallback = _generate_fallback_embedding(cleaned_text)
+    _embedding_cache[cache_key] = fallback
+    return fallback
 
 
 async def generate_embeddings_batch(texts: List[str]) -> List[List[float]]:

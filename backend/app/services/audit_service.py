@@ -3,6 +3,7 @@
 import time
 import uuid
 import os
+import asyncio
 from typing import List, Dict, Any, Optional
 import structlog
 from fastapi import HTTPException, status
@@ -155,9 +156,12 @@ async def run_audit(
     # 2. Get active brand rules for org
     rules = fetch_all("brand_rules", {"organisation_id": org_id, "is_active": True})
 
-    # 3. Run Rule Engine for deterministic checks
+    # 3. Concurrently run Deterministic Rule Engine & Semantic Guideline Retrieval (RAG)
     rule_engine = RuleEngine()
-    rule_findings = await rule_engine.analyze(content_text, rules)
+    rule_findings, retrieved_chunks = await asyncio.gather(
+        rule_engine.analyze(content_text, rules),
+        retrieve_relevant_chunks(org_id, content_text, top_k=5),
+    )
 
     # 4. Extract Voice, Facts, Colors, and Assets from rules
     approved_facts = [
@@ -176,10 +180,7 @@ async def run_audit(
     ]
     brand_assets = fetch_all("brand_assets", {"organisation_id": org_id})
 
-    # 5. Semantic Guideline Retrieval (RAG)
-    retrieved_chunks = await retrieve_relevant_chunks(org_id, content_text, top_k=5)
-
-    # 6. Primary LLM Analysis (Google Gemini Core Intelligence)
+    # 5. Primary LLM Analysis (Google Gemini Core Intelligence)
     llm_analyzer = LLMAnalyzer()
     engine_meta = llm_analyzer.get_engine_metadata()
     llm_findings = await llm_analyzer.analyze_content(

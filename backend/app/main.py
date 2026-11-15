@@ -155,6 +155,12 @@ async def root():
     }
 
 
+@app.get("/ping", tags=["Health"])
+async def ping():
+    """Ultra-fast zero-allocation liveness probe."""
+    return {"status": "ok", "timestamp": time.time()}
+
+
 @app.get("/health", tags=["Health"])
 async def health_check():
     """Health check endpoint evaluating database connectivity."""

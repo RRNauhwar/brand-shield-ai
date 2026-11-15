@@ -24,21 +24,30 @@ else:
 DB_PATH = Path(os.environ.get("SQLITE_DB_PATH", str(DB_DIR / "brandshield_local.db")))
 
 _lock = threading.Lock()
+_is_db_initialized = False
 
 
 def get_connection() -> sqlite3.Connection:
-    """Get SQLite database connection with row factory."""
+    """Get SQLite database connection with row factory, WAL mode, and tuned cache."""
     DB_DIR.mkdir(parents=True, exist_ok=True)
     conn = sqlite3.connect(str(DB_PATH), timeout=30.0, check_same_thread=False)
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA foreign_keys = ON")
     conn.execute("PRAGMA journal_mode = WAL")
+    conn.execute("PRAGMA synchronous = NORMAL")
+    conn.execute("PRAGMA cache_size = -64000")
     return conn
 
 
-def init_sqlite_db() -> None:
-    """Initialize all 14 relational tables in SQLite."""
+def init_sqlite_db(force: bool = False) -> None:
+    """Initialize all 14 relational tables and performance indexes in SQLite once."""
+    global _is_db_initialized
+    if _is_db_initialized and not force:
+        return
+
     with _lock:
+        if _is_db_initialized and not force:
+            return
         conn = get_connection()
         cursor = conn.cursor()
 
@@ -265,9 +274,27 @@ def init_sqlite_db() -> None:
             except Exception:
                 pass
 
+        # High-performance indexes for zero-latency relational seeks
+        cursor.executescript("""
+        CREATE INDEX IF NOT EXISTS idx_members_org ON organisation_members(organisation_id);
+        CREATE INDEX IF NOT EXISTS idx_members_user ON organisation_members(user_id);
+        CREATE INDEX IF NOT EXISTS idx_rules_org ON brand_rules(organisation_id, is_active);
+        CREATE INDEX IF NOT EXISTS idx_docs_org ON brand_documents(organisation_id);
+        CREATE INDEX IF NOT EXISTS idx_chunks_doc ON guideline_chunks(document_id);
+        CREATE INDEX IF NOT EXISTS idx_chunks_org ON guideline_chunks(organisation_id);
+        CREATE INDEX IF NOT EXISTS idx_content_org ON content_submissions(organisation_id);
+        CREATE INDEX IF NOT EXISTS idx_audits_content ON audit_reports(content_id);
+        CREATE INDEX IF NOT EXISTS idx_audits_org ON audit_reports(organisation_id);
+        CREATE INDEX IF NOT EXISTS idx_findings_audit ON compliance_findings(audit_id);
+        CREATE INDEX IF NOT EXISTS idx_findings_content ON compliance_findings(content_id);
+        CREATE INDEX IF NOT EXISTS idx_campaigns_org ON campaigns(organisation_id);
+        CREATE INDEX IF NOT EXISTS idx_campaign_assets_camp ON campaign_assets(campaign_id);
+        """)
+
         conn.commit()
         conn.close()
-        logger.info("Local SQLite storage initialized", path=str(DB_PATH))
+        _is_db_initialized = True
+        logger.info("Local SQLite storage and performance indexes initialized", path=str(DB_PATH))
 
 
 def _serialize_val(val: Any) -> Any:
