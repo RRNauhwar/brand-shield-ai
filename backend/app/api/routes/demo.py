@@ -72,8 +72,152 @@ async def setup_demo_workspace(
     """
     supabase = get_supabase_admin_client()
     user_id = current_user["id"] if current_user else "00000000-0000-0000-0000-000000000002"
-
     org_id = NOVATECH_ORG_ID
+
+    rules_data = [
+        # Preferred terminology
+        {
+            "id": str(uuid.uuid4()),
+            "organisation_id": org_id,
+            "rule_type": "terminology_preferred",
+            "name": "Brand Architecture: NovaShield AI",
+            "value": "NovaShield Tool",
+            "replacement": "NovaShield AI Platform",
+            "description": "Always refer to our flagship offering as the 'NovaShield AI Platform', never as a 'tool' or 'utility'.",
+            "metadata": {"enforce_case": True},
+            "is_active": True,
+            "created_by": user_id,
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "organisation_id": org_id,
+            "rule_type": "terminology_preferred",
+            "name": "Audience Terminology: Clients",
+            "value": "customers",
+            "replacement": "enterprise partners",
+            "description": "In enterprise product marketing, refer to organizations as 'enterprise partners' or 'clients', not 'customers'.",
+            "metadata": {},
+            "is_active": True,
+            "created_by": user_id,
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "organisation_id": org_id,
+            "rule_type": "terminology_preferred",
+            "name": "Technical Terminology: Cloud-Native",
+            "value": "cloud based",
+            "replacement": "cloud-native",
+            "description": "Hyphenate 'cloud-native' per technical writing standards.",
+            "metadata": {},
+            "is_active": True,
+            "created_by": user_id,
+        },
+        # Prohibited terminology
+        {
+            "id": str(uuid.uuid4()),
+            "organisation_id": org_id,
+            "rule_type": "terminology_prohibited",
+            "name": "Prohibited Claim: Unhackable",
+            "value": "unhackable",
+            "replacement": None,
+            "description": "Strict legal liability violation. No software may ever be described as unhackable or impenetrable.",
+            "metadata": {"risk_level": "critical"},
+            "is_active": True,
+            "created_by": user_id,
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "organisation_id": org_id,
+            "rule_type": "terminology_prohibited",
+            "name": "Prohibited Claim: 100% Protection",
+            "value": "100% protection",
+            "replacement": "multi-layered proactive defense",
+            "description": "Absolute security guarantees violate FTC marketing compliance guidelines.",
+            "metadata": {"risk_level": "critical"},
+            "is_active": True,
+            "created_by": user_id,
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "organisation_id": org_id,
+            "rule_type": "terminology_prohibited",
+            "name": "Competitor Disparagement",
+            "value": "legacy clunkers",
+            "replacement": None,
+            "description": "Never use derogatory language toward legacy competitors.",
+            "metadata": {"risk_level": "high"},
+            "is_active": True,
+            "created_by": user_id,
+        },
+        # Mandatory messages / disclaimers
+        {
+            "id": str(uuid.uuid4()),
+            "organisation_id": org_id,
+            "rule_type": "mandatory_message",
+            "name": "SOC-2 & ISO Certification Notice",
+            "value": "NovaTech Solutions is SOC 2 Type II and ISO 27001 certified.",
+            "replacement": None,
+            "description": "All external security overviews and advertisements must include verification notice.",
+            "metadata": {"placement": "footer"},
+            "is_active": True,
+            "created_by": user_id,
+        },
+        # Approved facts
+        {
+            "id": str(uuid.uuid4()),
+            "organisation_id": org_id,
+            "rule_type": "approved_fact",
+            "name": "Platform Uptime SLA",
+            "value": "99.99% enterprise SLA uptime across all global regions",
+            "replacement": None,
+            "description": "Audited quarterly platform availability figure.",
+            "metadata": {"metric": "uptime", "value": 99.99},
+            "is_active": True,
+            "created_by": user_id,
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "organisation_id": org_id,
+            "rule_type": "approved_fact",
+            "name": "Enterprise Scale Metric",
+            "value": "Protecting over 500 Global 2000 enterprises worldwide",
+            "replacement": None,
+            "description": "Current verified enterprise client volume.",
+            "metadata": {"client_count": 500},
+            "is_active": True,
+            "created_by": user_id,
+        },
+        # Brand voice & colors
+        {
+            "id": str(uuid.uuid4()),
+            "organisation_id": org_id,
+            "rule_type": "brand_voice",
+            "name": "Authoritative & Empathetic Tone",
+            "value": "Authoritative, technically rigorous, transparent, and empathetic to SecOps challenges.",
+            "description": "Tone should avoid hyperbole, slang, or panic-inducing fear-uncertainty-doubt (FUD) tactics.",
+            "metadata": {"avoid_words": ["gonna", "y'all", "crazy", "miraculous", "magic"]},
+            "is_active": True,
+            "created_by": user_id,
+        },
+        {
+            "id": str(uuid.uuid4()),
+            "organisation_id": org_id,
+            "rule_type": "brand_color",
+            "name": "NovaTech Primary Brand Colors",
+            "value": "#0F172A",
+            "description": "Primary Navy Blue #0F172A and Cyan Accent #06B6D4.",
+            "metadata": {"palette": ["#0F172A", "#06B6D4", "#3B82F6", "#F8FAFC"]},
+            "is_active": True,
+            "created_by": user_id,
+        },
+    ]
+
+    guideline_texts = [
+        "NovaTech Solutions Brand Identity & Tone Guidelines. Our voice is defined by four core principles: Authoritative Precision, Collaborative Empathy, Uncompromising Transparency, and Technical Rigor. We do not engage in fear-mongering or sensationalist marketing.",
+        "Terminology and Naming Conventions: The flagship product must always be cited as 'NovaShield AI Platform'. Prohibited terms include 'unhackable', 'impenetrable', and '100% protection'. All security products must be described as risk-mitigating defenses.",
+        "Approved Facts & Corporate Metrics: NovaTech Solutions protects over 500 Global 2000 enterprises across North America, EMEA, and APAC. Our cloud-native architecture delivers 99.99% audited SLA availability.",
+        "Mandatory Notices: Any external facing whitepaper, case study, or digital campaign must incorporate the official compliance attribution: 'NovaTech Solutions is SOC 2 Type II and ISO 27001 certified.'",
+    ]
 
     if supabase:
         # 1. Upsert Profile for user
@@ -117,143 +261,6 @@ async def setup_demo_workspace(
             pass
 
         # 5. Insert Brand Rules
-        rules_data = [
-            # Preferred terminology
-            {
-                "id": str(uuid.uuid4()),
-                "organisation_id": org_id,
-                "rule_type": "terminology_preferred",
-                "name": "Brand Architecture: NovaShield AI",
-                "value": "NovaShield Tool",
-                "replacement": "NovaShield AI Platform",
-                "description": "Always refer to our flagship offering as the 'NovaShield AI Platform', never as a 'tool' or 'utility'.",
-                "metadata": {"enforce_case": True},
-                "is_active": True,
-                "created_by": user_id,
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "organisation_id": org_id,
-                "rule_type": "terminology_preferred",
-                "name": "Audience Terminology: Clients",
-                "value": "customers",
-                "replacement": "enterprise partners",
-                "description": "In enterprise product marketing, refer to organizations as 'enterprise partners' or 'clients', not 'customers'.",
-                "metadata": {},
-                "is_active": True,
-                "created_by": user_id,
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "organisation_id": org_id,
-                "rule_type": "terminology_preferred",
-                "name": "Technical Terminology: Cloud-Native",
-                "value": "cloud based",
-                "replacement": "cloud-native",
-                "description": "Hyphenate 'cloud-native' per technical writing standards.",
-                "metadata": {},
-                "is_active": True,
-                "created_by": user_id,
-            },
-            # Prohibited terminology
-            {
-                "id": str(uuid.uuid4()),
-                "organisation_id": org_id,
-                "rule_type": "terminology_prohibited",
-                "name": "Prohibited Claim: Unhackable",
-                "value": "unhackable",
-                "replacement": None,
-                "description": "Strict legal liability violation. No software may ever be described as unhackable or impenetrable.",
-                "metadata": {"risk_level": "critical"},
-                "is_active": True,
-                "created_by": user_id,
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "organisation_id": org_id,
-                "rule_type": "terminology_prohibited",
-                "name": "Prohibited Claim: 100% Protection",
-                "value": "100% protection",
-                "replacement": "multi-layered proactive defense",
-                "description": "Absolute security guarantees violate FTC marketing compliance guidelines.",
-                "metadata": {"risk_level": "critical"},
-                "is_active": True,
-                "created_by": user_id,
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "organisation_id": org_id,
-                "rule_type": "terminology_prohibited",
-                "name": "Competitor Disparagement",
-                "value": "legacy clunkers",
-                "replacement": None,
-                "description": "Never use derogatory language toward legacy competitors.",
-                "metadata": {"risk_level": "high"},
-                "is_active": True,
-                "created_by": user_id,
-            },
-            # Mandatory messages / disclaimers
-            {
-                "id": str(uuid.uuid4()),
-                "organisation_id": org_id,
-                "rule_type": "mandatory_message",
-                "name": "SOC-2 & ISO Certification Notice",
-                "value": "NovaTech Solutions is SOC 2 Type II and ISO 27001 certified.",
-                "replacement": None,
-                "description": "All external security overviews and advertisements must include verification notice.",
-                "metadata": {"placement": "footer"},
-                "is_active": True,
-                "created_by": user_id,
-            },
-            # Approved facts
-            {
-                "id": str(uuid.uuid4()),
-                "organisation_id": org_id,
-                "rule_type": "approved_fact",
-                "name": "Platform Uptime SLA",
-                "value": "99.99% enterprise SLA uptime across all global regions",
-                "replacement": None,
-                "description": "Audited quarterly platform availability figure.",
-                "metadata": {"metric": "uptime", "value": 99.99},
-                "is_active": True,
-                "created_by": user_id,
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "organisation_id": org_id,
-                "rule_type": "approved_fact",
-                "name": "Enterprise Scale Metric",
-                "value": "Protecting over 500 Global 2000 enterprises worldwide",
-                "replacement": None,
-                "description": "Current verified enterprise client volume.",
-                "metadata": {"client_count": 500},
-                "is_active": True,
-                "created_by": user_id,
-            },
-            # Brand voice & colors
-            {
-                "id": str(uuid.uuid4()),
-                "organisation_id": org_id,
-                "rule_type": "brand_voice",
-                "name": "Authoritative & Empathetic Tone",
-                "value": "Authoritative, technically rigorous, transparent, and empathetic to SecOps challenges.",
-                "description": "Tone should avoid hyperbole, slang, or panic-inducing fear-uncertainty-doubt (FUD) tactics.",
-                "metadata": {"avoid_words": ["gonna", "y'all", "crazy", "miraculous", "magic"]},
-                "is_active": True,
-                "created_by": user_id,
-            },
-            {
-                "id": str(uuid.uuid4()),
-                "organisation_id": org_id,
-                "rule_type": "brand_color",
-                "name": "NovaTech Primary Brand Colors",
-                "value": "#0F172A",
-                "description": "Primary Navy Blue #0F172A and Cyan Accent #06B6D4.",
-                "metadata": {"palette": ["#0F172A", "#06B6D4", "#3B82F6", "#F8FAFC"]},
-                "is_active": True,
-                "created_by": user_id,
-            },
-        ]
         try:
             supabase.table("brand_rules").insert(rules_data).execute()
         except Exception as e:
@@ -273,12 +280,6 @@ async def setup_demo_workspace(
         }
         try:
             supabase.table("brand_documents").insert(doc_payload).execute()
-            guideline_texts = [
-                "NovaTech Solutions Brand Identity & Tone Guidelines. Our voice is defined by four core principles: Authoritative Precision, Collaborative Empathy, Uncompromising Transparency, and Technical Rigor. We do not engage in fear-mongering or sensationalist marketing.",
-                "Terminology and Naming Conventions: The flagship product must always be cited as 'NovaShield AI Platform'. Prohibited terms include 'unhackable', 'impenetrable', and '100% protection'. All security products must be described as risk-mitigating defenses.",
-                "Approved Facts & Corporate Metrics: NovaTech Solutions protects over 500 Global 2000 enterprises across North America, EMEA, and APAC. Our cloud-native architecture delivers 99.99% audited SLA availability.",
-                "Mandatory Notices: Any external facing whitepaper, case study, or digital campaign must incorporate the official compliance attribution: 'NovaTech Solutions is SOC 2 Type II and ISO 27001 certified.'",
-            ]
             embeddings = await generate_embeddings_batch(guideline_texts)
             chunks_to_store = [
                 {
@@ -368,6 +369,34 @@ async def setup_demo_workspace(
             delete_rows("brand_rules", {"organisation_id": org_id})
             for r in rules_data:
                 insert_row("brand_rules", r)
+
+            # Insert Brand Document & Guideline Chunks in SQLite
+            doc_id = str(uuid.uuid4())
+            insert_row("brand_documents", {
+                "id": doc_id,
+                "organisation_id": org_id,
+                "name": "NovaTech_Brand_Guidelines_2025.pdf",
+                "file_type": "pdf",
+                "file_size": 245000,
+                "status": "ready",
+                "chunk_count": 4,
+                "uploaded_by": user_id,
+            })
+            try:
+                embeddings = await generate_embeddings_batch(guideline_texts)
+                chunks_to_store = [
+                    {
+                        "content": text,
+                        "page_number": idx + 1,
+                        "chunk_index": idx,
+                        "embedding": emb,
+                        "metadata": {"filename": "NovaTech_Brand_Guidelines_2025.pdf"},
+                    }
+                    for idx, (text, emb) in enumerate(zip(guideline_texts, embeddings))
+                ]
+                await store_chunks(org_id, doc_id, chunks_to_store)
+            except Exception as e:
+                logger.warning("Could not store guideline chunks in SQLite mode", error=str(e))
 
             # Insert sample submissions
             content_1_id = "11111111-1111-1111-1111-111111111111"

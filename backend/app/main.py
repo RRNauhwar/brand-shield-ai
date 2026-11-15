@@ -55,8 +55,9 @@ async def lifespan(app: FastAPI):
         from app.database.client import fetch_all
         from app.api.routes.demo import setup_demo_workspace
         orgs = fetch_all("organisations")
-        if not orgs:
-            logger.info("Fresh database detected. Auto-seeding NovaTech demo workspace...")
+        rules = fetch_all("brand_rules")
+        if not orgs or not rules:
+            logger.info("Fresh database or empty rules detected. Auto-seeding NovaTech demo workspace...")
             await setup_demo_workspace(current_user=None)
             logger.info("NovaTech demo workspace auto-seeded successfully!")
     except Exception as e:
