@@ -49,6 +49,19 @@ async def lifespan(app: FastAPI):
     # Check DB connectivity
     db_status = await check_database_connection()
     logger.info("Database connectivity status", **db_status)
+
+    # Auto-seed demo workspace if database is fresh
+    try:
+        from app.database.client import fetch_all
+        from app.api.routes.demo import setup_demo_workspace
+        orgs = fetch_all("organisations")
+        if not orgs:
+            logger.info("Fresh database detected. Auto-seeding NovaTech demo workspace...")
+            await setup_demo_workspace(current_user=None)
+            logger.info("NovaTech demo workspace auto-seeded successfully!")
+    except Exception as e:
+        logger.warning("Could not auto-seed demo workspace on startup", error=str(e))
+
     yield
     logger.info("Shutting down BrandShield AI Backend")
 
