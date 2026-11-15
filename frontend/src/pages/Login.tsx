@@ -3,10 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { Lock, Mail, ArrowRight } from 'lucide-react';
+import { Lock, Mail, ArrowRight, Sparkles } from 'lucide-react';
 
 export const Login: React.FC = () => {
-  const { login, isLoading } = useAuth();
+  const { login, loginDemo, isLoading } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -21,6 +21,16 @@ export const Login: React.FC = () => {
       navigate('/');
     } catch (err: any) {
       setError(err.message || 'Invalid credentials. Please try again.');
+    }
+  };
+
+  const handleDemoAccess = async () => {
+    setError('');
+    try {
+      await loginDemo();
+      navigate('/');
+    } catch (err: any) {
+      setError('Could not access demo workspace');
     }
   };
 
@@ -78,6 +88,27 @@ export const Login: React.FC = () => {
           rightIcon={<ArrowRight className="w-4 h-4" />}
         >
           Sign In
+        </Button>
+
+        <div className="relative my-4">
+          <div className="absolute inset-0 flex items-center">
+            <div className="w-full border-t border-surface-border" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-surface-1 px-2 text-slate-500 font-mono text-[10px]">Instant Hackathon Access</span>
+          </div>
+        </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          size="lg"
+          onClick={handleDemoAccess}
+          isLoading={isLoading}
+          className="w-full border-brand-500/30 text-brand-300 hover:bg-brand-500/10 flex items-center justify-center gap-2"
+        >
+          <Sparkles className="w-4 h-4 text-brand-400" />
+          <span>Explore Demo Workspace (NovaTech)</span>
         </Button>
       </form>
 

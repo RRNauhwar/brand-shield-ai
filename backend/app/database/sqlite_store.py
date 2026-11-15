@@ -15,8 +15,13 @@ import structlog
 
 logger = structlog.get_logger(__name__)
 
-DB_DIR = Path(__file__).resolve().parent.parent.parent / "data"
-DB_PATH = DB_DIR / "brandshield_local.db"
+DATA_DIR_ENV = os.environ.get("DATA_DIR")
+if DATA_DIR_ENV:
+    DB_DIR = Path(DATA_DIR_ENV)
+else:
+    DB_DIR = Path(__file__).resolve().parent.parent.parent / "data"
+
+DB_PATH = Path(os.environ.get("SQLITE_DB_PATH", str(DB_DIR / "brandshield_local.db")))
 
 _lock = threading.Lock()
 

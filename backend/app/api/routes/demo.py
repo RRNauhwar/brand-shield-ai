@@ -342,6 +342,75 @@ async def setup_demo_workspace(
             await run_audit(content_id=content_1_id, org_id=org_id, client=supabase)
         except Exception as e:
             logger.warning("Could not run initial demo audit", error=str(e))
+    else:
+        # SQLite persistence mode
+        try:
+            insert_row("profiles", {
+                "id": user_id,
+                "email": current_user.get("email", "demo@novatech.ai") if current_user else "demo@novatech.ai",
+                "full_name": current_user.get("full_name", "Demo Administrator") if current_user else "Demo Administrator",
+            })
+            insert_row("organisations", {
+                "id": org_id,
+                "name": "NovaTech Solutions",
+                "description": "Enterprise Cloud Architecture and Autonomous Cybersecurity Platform",
+                "logo_url": "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=200&auto=format&fit=crop&q=80",
+                "is_demo": True,
+                "created_by": user_id,
+            })
+            insert_row("organisation_members", {
+                "id": str(uuid.uuid4()),
+                "organisation_id": org_id,
+                "user_id": user_id,
+                "role": "admin",
+            })
+            # Clean old rules for NovaTech
+            delete_rows("brand_rules", {"organisation_id": org_id})
+            for r in rules_data:
+                insert_row("brand_rules", r)
+
+            # Insert sample submissions
+            content_1_id = "11111111-1111-1111-1111-111111111111"
+            content_1_text = (
+                "Protect your business today with the NovaShield Tool! Our revolutionary cloud based architecture guarantees "
+                "100% protection against every cyberattack, rendering your enterprise completely unhackable. "
+                "Over 10,000 customers already trust us for zero-downtime security. Join today and forget about security risks forever!"
+            )
+            insert_row("content_submissions", {
+                "id": content_1_id,
+                "organisation_id": org_id,
+                "title": "Q1 Product Launch Announcement",
+                "category": "marketing_campaign",
+                "original_content": content_1_text,
+                "current_content": content_1_text,
+                "content_type": "text",
+                "status": "draft",
+                "submitted_by": user_id,
+            })
+
+            content_2_id = "22222222-2222-2222-2222-222222222222"
+            content_2_text = (
+                "We are thrilled to unveil new zero-trust telemetry capabilities on the NovaShield AI Platform. "
+                "Engineered for high resilience, the platform helps enterprise partners proactively detect anomalies across multi-cloud environments. "
+                "NovaTech Solutions is SOC 2 Type II and ISO 27001 certified, providing 99.99% enterprise SLA uptime."
+            )
+            insert_row("content_submissions", {
+                "id": content_2_id,
+                "organisation_id": org_id,
+                "title": "SecOps Product Update - Enterprise Release",
+                "category": "blog_article",
+                "original_content": content_2_text,
+                "current_content": content_2_text,
+                "content_type": "text",
+                "status": "approved",
+                "submitted_by": user_id,
+            })
+            try:
+                await run_audit(content_id=content_1_id, org_id=org_id)
+            except Exception as e:
+                logger.warning("Could not run initial demo audit in SQLite", error=str(e))
+        except Exception as e:
+            logger.warning("SQLite demo setup exception", error=str(e))
 
     return {
         "status": "success",
